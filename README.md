@@ -1,5 +1,5 @@
 #Blink-Pointer
-An eye-controlled mouse system using Python, enabling hands-free interaction through blink detection.
+#An eye-controlled mouse system using Python, enabling hands-free interaction through blink detection.
 import cv2
 import mediapipe as mp
 import pyautogui
