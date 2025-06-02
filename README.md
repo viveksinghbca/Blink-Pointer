@@ -1,17 +1,5 @@
 #Blink-Pointer
 #An eye-controlled mouse system using Python, enabling hands-free interaction through blink detection.
-import cv2
-import mediapipe as mp
-import pyautogui
-import numpy as np
-import time
-import threading
-import tkinter as tk
-from tkinter import messagebox, filedialog, ttk
-import os
-import subprocess
-import json
-import pygame
 
 # Initialize pygame mixer
 pygame.mixer.init()
@@ -46,55 +34,59 @@ eye_history_right = []
 APP_CONFIG_PATH = "app_config.json"
 
 # Default apps grouped with full paths where possible
+
 APPS = {
+
     "Browsers": {
         "YouTube (Browser)": "https://www.youtube.com",
-        "Chrome": r"C:\Program Files\Google\Chrome\Application\chrome.exe"  # Full path
-    },
+        "Chrome": r"C:\Program Files\Google\Chrome\Application\chrome.exe"},
+    
     "Text Editors": {
-        "Notepad": r"C:\Windows\System32\notepad.exe",  # Full path
-        "VS Code": r"C:\Program Files\Microsoft VS Code\Code.exe",  # Full path
-    },
+        "Notepad": r"C:\Windows\System32\notepad.exe",
+        "VS Code": r"C:\Program Files\Microsoft VS Code\Code.exe",},
+    
     "Office": {
-        "PowerPoint": r"C:\Program Files\Microsoft Office\root\Office16\POWERPNT.EXE",  # Full path
-        "MS Word": r"C:\Program Files\Microsoft Office\root\Office16\WINWORD.EXE",  # Full path
-        "MS Excel": r"C:\Program Files\Microsoft Office\root\Office16\EXCEL.EXE",  # Full path
-    },
+        "PowerPoint": r"C:\Program Files\Microsoft Office\root\Office16\POWERPNT.EXE",
+        "MS Word": r"C:\Program Files\Microsoft Office\root\Office16\WINWORD.EXE",
+        "MS Excel": r"C:\Program Files\Microsoft Office\root\Office16\EXCEL.EXE",  },
+    
     "Utilities": {
-        "Calculator": r"C:\Windows\System32\calc.exe",  # Full path
-        "Paint": r"C:\Windows\System32\mspaint.exe",  # Full path
-    },
+        "Calculator": r"C:\Windows\System32\calc.exe",
+        "Paint": r"C:\Windows\System32\mspaint.exe", },
+    
     "Custom App": {
-        "Custom...": None
-    }
+        "Custom...": None }
 }
 
 selected_app_path = None
 
 # Webcam
-cam = cv2.VideoCapture(0)
 
-def get_eye_distance(landmarks, top_idx, bottom_idx):
+
+
+     cam = cv2.VideoCapture(0)
+
+    def get_eye_distance(landmarks, top_idx, bottom_idx):
     top = landmarks[top_idx]
     bottom = landmarks[bottom_idx]
     return abs(top.y - bottom.y)
 
-def smooth_move(current_x, current_y, target_x, target_y, factor=0.35):
+    def smooth_move(current_x, current_y, target_x, target_y, factor=0.35):
     new_x = current_x + (target_x - current_x) * factor
     new_y = current_y + (target_y - current_y) * factor
     return new_x, new_y
 
-def play_click_sound():
+    def play_click_sound():
     try:
         click_sound.play()  # Play the sound using pygame mixer
     except Exception as e:
         print("Sound play error:", e)
 
-def save_calibration(threshold):
+    def save_calibration(threshold):
     with open("config.txt", "w") as f:
         f.write(str(threshold))
 
-def load_calibration():
+    def load_calibration():
     global blink_threshold, calibrated
     if os.path.exists("config.txt"):
         with open("config.txt", "r") as f:
@@ -102,18 +94,18 @@ def load_calibration():
             calibrated = True
             messagebox.showinfo("Calibration Loaded", f"Threshold loaded: {blink_threshold:.5f}")
 
-def save_selected_app(path):
+    def save_selected_app(path):
     with open(APP_CONFIG_PATH, 'w') as f:
         json.dump({"selected": path}, f)
 
-def load_selected_app():
+    def load_selected_app():
     global selected_app_path
     if os.path.exists(APP_CONFIG_PATH):
         with open(APP_CONFIG_PATH, 'r') as f:
             data = json.load(f)
             selected_app_path = data.get("selected")
 
-def calibrate_blink():
+    def calibrate_blink():
     global blink_threshold, calibrated
     messagebox.showinfo("Calibration", "Keep your eyes OPEN and press OK.")
     open_eye_distances = []
@@ -150,7 +142,7 @@ def calibrate_blink():
     save_calibration(blink_threshold)
     messagebox.showinfo("Done", f"Calibration complete.\nThreshold set to {blink_threshold:.5f}")
 
-def open_app():
+    def open_app():
     global selected_app_path
     if selected_app_path:
         try:
@@ -165,7 +157,7 @@ def open_app():
         except Exception as e:
             print(f"Error opening app: {e}")
 
-def on_app_select(event):
+     def on_app_select(event):
     global selected_app_path
     selection = selected_app.get()
     for category in APPS:
@@ -177,7 +169,7 @@ def on_app_select(event):
             save_selected_app(selected_app_path)
             break
 
-def track_face():
+    def track_face():
     global prev_mouse_x, prev_mouse_y, last_click_time, blink_start_time, last_blink_time, blink_count
 
     while True:
@@ -272,7 +264,7 @@ def track_face():
             if cv2.waitKey(1) & 0xFF == 27:
                 break
 
-def start_tracking():
+    def start_tracking():
     global tracking_enabled
     if not calibrated:
         messagebox.showwarning("Warning", "Please calibrate first.")
@@ -281,56 +273,57 @@ def start_tracking():
     start_btn.config(state="disabled")
     stop_btn.config(state="normal")
 
-def stop_tracking():
+    def stop_tracking():
     global tracking_enabled
     tracking_enabled = False
     start_btn.config(state="normal")
     stop_btn.config(state="disabled")
 
-def toggle_overlay():
+    def toggle_overlay():
     global overlay_enabled
     overlay_enabled = not overlay_enabled
     overlay_btn.config(text=f"Overlay: {'ON' if overlay_enabled else 'OFF'}")
 
 # GUI Setup
-root = tk.Tk()
-root.title("Eye Mouse Control")
-selected_app = tk.StringVar()
+      root = tk.Tk()
+     root.title("Eye Mouse Control")
+    selected_app = tk.StringVar()
 
-frame = tk.Frame(root, padx=10, pady=10)
-frame.pack()
+    frame = tk.Frame(root, padx=10, pady=10)
+    frame.pack()
 
-tk.Label(frame, text="Eye Mouse - Enhanced", font=("Arial", 14, "bold")).pack(pady=10)
+    tk.Label(frame, text="Eye Mouse - Enhanced", font=("Arial", 14, "bold")).pack(pady=10)
 
-start_btn = tk.Button(frame, text="Start Tracking", command=start_tracking)
-start_btn.pack(pady=5)
+    start_btn = tk.Button(frame, text="Start Tracking", command=start_tracking)
+     start_btn.pack(pady=5)
 
-stop_btn = tk.Button(frame, text="Stop Tracking", command=stop_tracking, state="disabled")
-stop_btn.pack(pady=5)
+     stop_btn = tk.Button(frame, text="Stop Tracking", command=stop_tracking, state="disabled")
+    stop_btn.pack(pady=5)
 
-calibrate_btn = tk.Button(frame, text="Calibrate Blink", command=calibrate_blink)
-calibrate_btn.pack(pady=5)
+    calibrate_btn = tk.Button(frame, text="Calibrate Blink", command=calibrate_blink)
+    calibrate_btn.pack(pady=5)
 
-load_btn = tk.Button(frame, text="Load Calibration", command=load_calibration)
-load_btn.pack(pady=5)
+    load_btn = tk.Button(frame, text="Load Calibration", command=load_calibration)
+    load_btn.pack(pady=5)
 
-overlay_btn = tk.Button(frame, text="Overlay: ON", command=toggle_overlay)
-overlay_btn.pack(pady=5)
+    overlay_btn = tk.Button(frame, text="Overlay: ON", command=toggle_overlay)
+    overlay_btn.pack(pady=5)
 
 # App Dropdown
-tk.Label(frame, text="Double Blink App").pack(pady=(10, 0))
-app_menu = ttk.Combobox(frame, textvariable=selected_app)
-app_menu['values'] = [f"{app}" for group in APPS.values() for app in group.keys()]
-app_menu.bind("<<ComboboxSelected>>", on_app_select)
-app_menu.pack(pady=5)
 
-exit_btn = tk.Button(frame, text="Exit", command=root.destroy)
-exit_btn.pack(pady=10)
+     tk.Label(frame, text="Double Blink App").pack(pady=(10, 0))
+    app_menu = ttk.Combobox(frame, textvariable=selected_app)
+    app_menu['values'] = [f"{app}" for group in APPS.values() for app in group.keys()]
+    app_menu.bind("<<ComboboxSelected>>", on_app_select)
+    app_menu.pack(pady=5)
 
-load_selected_app()
-threading.Thread(target=track_face, daemon=True).start()
-root.mainloop()
+    exit_btn = tk.Button(frame, text="Exit", command=root.destroy)
+    exit_btn.pack(pady=10)
+
+    load_selected_app()
+    threading.Thread(target=track_face, daemon=True).start()
+    root.mainloop()
 
 # Cleanup
-cam.release()
-cv2.destroyAllWindows()
+    cam.release()
+    cv2.destroyAllWindows()
